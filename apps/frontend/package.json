@@ -1,0 +1,8 @@
+{
+  "name": "@wallet/frontend",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"no tests yet\" && exit 0"
+  }
+}
