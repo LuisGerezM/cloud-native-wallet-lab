@@ -24,5 +24,30 @@ cdk.out/
 # Cobertura de tests
 coverage/
 
+gitignore
+# pnpm
+pnpm-debug.log*
+
+# TypeScript build
+dist/
+*.tsbuildinfo
+
+# Test / coverage
+coverage/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+
+# Misc
+*.local
+
+.claude
+
 .CLAUDE
 RECURSOS
+CLAUDE.md
