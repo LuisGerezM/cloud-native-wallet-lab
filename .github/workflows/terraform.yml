@@ -1,0 +1,45 @@
+name: Terraform (dev)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - '.github/workflows/terraform.yml'
+
+permissions:
+  id-token: write # REQUERIDO: habilita la emision del token OIDC
+  contents: read # para el checkout
+
+jobs:
+  plan:
+    name: fmt - validate - plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/envs/dev # Apunta a dev - todos los run corren parados ahi (donde vive el backend). El step de fmt lo override a infra para chequear formato de todo el arbol (bootstrap + envs).
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }} # usa la variable del repo, no un ARN hardcodeado.
+          aws-region: us-east-1
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.15.7'
+
+      - name: Format check (all infra)
+        run: terraform fmt -check -recursive
+        working-directory: infra
+
+      - name: Init
+        run: terraform init
+
+      - name: Validate
+        run: terraform validate
+
+      - name: Plan
+        run: terraform plan -no-color #  sin codigos de color, se lee mejor en los logs del CI.
