@@ -2,9 +2,10 @@ name: Terraform (dev)
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - 'infra/**'
+      - 'apps/backend/**'
       - '.github/workflows/terraform.yml'
 
 permissions:
@@ -20,6 +21,24 @@ jobs:
         working-directory: infra/envs/dev # Apunta a dev - todos los run corren parados ahi (donde vive el backend). El step de fmt lo override a infra para chequear formato de todo el arbol (bootstrap + envs).
     steps:
       - uses: actions/checkout@v4
+
+      # El artefacto de la Lambda (.deploy/backend) NO se commitea: es un build.
+      # Hay que generarlo aca antes del plan, si no data.archive_file falla por
+      # "missing directory". Corre en la raiz del repo (override del working-directory).
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ${{ github.workspace }}
+
+      - name: Build Lambda artifact
+        run: pnpm --filter @wallet/backend build:lambda
+        working-directory: ${{ github.workspace }}
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
